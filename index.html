@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Calculator</title>
+    <link rel="icon" href="https://cdn.glitch.global/fa7af3ed-595a-4cee-ae5e-c4c3844fc237/microphone-icon-vector-illustration.jpg?v=1749192145610" type="image/x-icon">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom, #87CEEB, #1E90FF);
+            color: #333;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        /* Water bubble animation */
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
+        }
+
+        .calculator {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 350px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #1E90FF;
+            transition: all 0.3s;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .fish-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .display {
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            font-size: 18px;
+            text-align: right;
+            word-wrap: break-word;
+            border: 1px solid #bdc3c7;
+            transition: all 0.3s;
+        }
+
+        .status {
+            margin: 15px 0;
+            font-style: italic;
+            color: #7f8c8d;
+            min-height: 20px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #e8f4f8;
+            min-height: 20px;
+            border: 1px dashed #3498db;
+            transition: all 0.3s;
+        }
+
+        .water-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.2)" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-repeat: no-repeat;
+            background-position: bottom;
+            background-size: cover;
+            opacity: 0.5;
+            z-index: -1;
+            animation: wave 10s infinite linear;
+        }
+
+        @keyframes wave {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1000px; }
+        }
+        
+        .language-selector {
+            margin-bottom: 20px;
+        }
+        
+        .language-selector button {
+            padding: 8px 15px;
+            background-color: #2ecc71;
+        }
+        
+        .language-selector button.active {
+            background-color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .floating-button:hover {
+            background-color: #c0392b;
+        }
+        
+        /* Dark Mode */
+        .dark-mode {
+            background: linear-gradient(to bottom, #2c3e50, #34495e) !important;
+            color: #ecf0f1 !important;
+        }
+        
+        .dark-mode .calculator {
+            background-color: rgba(52, 73, 94, 0.9) !important;
+            color: #ecf0f1 !important;
+            border-color: #3498db !important;
+        }
+        
+        .dark-mode .display,
+        .dark-mode .response {
+            background-color: #2c3e50 !important;
+            color: #ecf0f1 !important;
+            border-color: #3498db !important;
+        }
+        
+        .dark-mode h1 {
+            color: #ecf0f1 !important;
+        }
+        
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Water bubbles -->
+    <div id="bubbles"></div>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle">🌙</button>
+
+    <div class="calculator">
+        <div class="water-effect"></div>
+        <div class="fish-icon">📱</div>
+        <h1 id="app-title">Speech Calculator</h1>
+        
+        <div class="language-selector">
+            <button id="lang-en" class="active">English</button>
+            <button id="lang-cn">中文</button>
+        </div>
+        
+        <div class="display" id="display">Say "Melon" then ask:<br>"What is 20 + 30?" or "Convert 100 USD to EUR" (In development)</div>
+        <div class="status" id="status">Microphone: Listening for wake word...</div>
+        <div class="response" id="response"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const display = document.getElementById('display');
+            const status = document.getElementById('status');
+            const response = document.getElementById('response');
+            const bubblesContainer = document.getElementById('bubbles');
+            const appTitle = document.getElementById('app-title');
+            const langEnBtn = document.getElementById('lang-en');
+            const langCnBtn = document.getElementById('lang-cn');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            
+            // Language content
+            const languages = {
+                en: {
+                    title: "Speech Calculator",
+                    displayPrompt: 'Say "Melon" then ask:<br>"What is 20 + 30?" or "Convert 100 USD to EUR" (In development)',
+                    statusListening: "Microphone: Listening for wake word...",
+                    statusActive: "Microphone: Active - Ready for commands",
+                    statusError: "Error: ",
+                    wakeWord: "Melon",
+                    calculationPrompt: ["what is", "calculate", "how much", "+", "-", "×", "÷", "add", "subtract", "multiply", "divide"],
+                    currencyPrompt: ["convert", "exchange", "to"],
+                    currencies: {
+                        "USD": "US$",
+                        "EUR": "Euros",
+                        "JPY": "Japanese Yen",
+                        "GBP": "British Pounds",
+                        "CNY": "Chinese Yuan",
+                        "AUD": "Australian Dollars"
+                    },
+                    responses: {
+                        add: "The sum of {a} and {b} is {result}",
+                        subtract: "The difference between {a} and {b} is {result}",
+                        multiply: "The product of {a} and {b} is {result}",
+                        divide: "The division of {a} by {b} is {result}",
+                        sqrt: "The square root of {a} is {result}",
+                        power: "{a} to the power of {b} is {result}",
+                        percentage: "{a}% of {b} is {result}",
+                        currency: "{amount} {fromCurrency} is approximately {result} {toCurrency}"
+                    },
+                    examplePrompt: "Ask me to calculate or convert currencies.",
+                    needNumbers: "I need numbers to calculate.",
+                    numbersOnly: "Please provide numbers to calculate."
+                },
+                cn: {
+                    title: "语音计算器",
+                    displayPrompt: '说 "小瓜" 然后提问:<br>"20加30等于多少？" 或 "100美元兑换人民币" (正在测试当中)',
+                    statusListening: "麦克风: 正在监听唤醒词...",
+                    statusActive: "麦克风: 激活状态 - 准备计算",
+                    statusError: "错误: ",
+                    wakeWord: "小瓜"||"瓜"||"小"||"小挂"||"笑"||"刮"||"笑刮"||"肖"||"肖刮"||"笑瓜"||"笑挂"||"笑话"||"傻瓜",
+                    calculationPrompt: ["多少", "计算", "加", "减", "乘", "除", "等于", "几"],
+                    currencyPrompt: ["兑换", "转换", "换成"],
+                    currencies: {
+                        "USD": "美元",
+                        "EUR": "欧元",
+                        "JPY": "日元",
+                        "GBP": "英镑",
+                        "CNY": "人民币",
+                        "AUD": "澳元"
+                    },
+                    responses: {
+                        add: "{a} 加 {b} 等于 {result}",
+                        subtract: "{a} 减 {b} 等于 {result}",
+                        multiply: "{a} 乘以 {b} 等于 {result}",
+                        divide: "{a} 除以 {b} 等于 {result}",
+                        sqrt: "{a} 的平方根是 {result}",
+                        power: "{a} 的 {b} 次方是 {result}",
+                        percentage: "{a}% 的 {b} 是 {result}",
+                        currency: "{amount}{fromCurrency} 约等于 {result}{toCurrency}"
+                    },
+                    examplePrompt: "请让我计算或兑换货币。",
+                    needNumbers: "我需要数字来计算。",
+                    numbersOnly: "请提供数字来计算。"
+                }
+            };
+            
+            let currentLang = 'en';
+            let isDarkMode = false;
+            
+            // Set language
+            function setLanguage(lang) {
+                currentLang = lang;
+                const langData = languages[lang];
+                
+                appTitle.textContent = langData.title;
+                display.innerHTML = langData.displayPrompt;
+                status.textContent = langData.statusListening;
+                
+                langEnBtn.classList.remove('active');
+                langCnBtn.classList.remove('active');
+                document.getElementById(`lang-${lang}`).classList.add('active');
+                
+                // Restart recognition with new language
+                if (recognition) {
+                    recognition.stop();
+                    recognition.lang = lang === 'en' ? 'en-US' : 'zh-CN';
+                    setTimeout(() => recognition.start(), 500);
+                }
+            }
+            
+            // Toggle dark mode
+            darkModeToggle.addEventListener('click', () => {
+                isDarkMode = !isDarkMode;
+                document.body.classList.toggle('dark-mode', isDarkMode);
+                darkModeToggle.textContent = isDarkMode ? "☀️" : "🌙";
+            });
+            
+            // Language switch buttons
+            langEnBtn.addEventListener('click', () => setLanguage('en'));
+            langCnBtn.addEventListener('click', () => setLanguage('cn'));
+            
+            // Create water bubbles
+            for (let i = 0; i < 20; i++) {
+                createBubble();
+            }
+            
+            function createBubble() {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 60 + 20;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.bottom = `-${size}px`;
+                bubble.style.animationDuration = `${Math.random() * 20 + 10}s`;
+                bubble.style.animationDelay = `${Math.random() * 5}s`;
+                bubblesContainer.appendChild(bubble);
+                
+                // Remove bubble after animation completes
+                setTimeout(() => {
+                    bubble.remove();
+                    createBubble(); // Create new bubble
+                }, 15000);
+            }
+            
+            let recognition;
+            let isListening = false;
+            let wakeWordDetected = false;
+            
+            // Check for browser support
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                status.textContent = "Speech recognition not supported in this browser.";
+                return;
+            }
+            
+            // Initialize speech recognition
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            // Event handlers
+            recognition.onstart = function() {
+                status.textContent = languages[currentLang].statusListening;
+                isListening = true;
+            };
+            
+            recognition.onend = function() {
+                if (isListening) {
+                    recognition.start(); // Restart recognition if still listening
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                status.textContent = languages[currentLang].statusError + event.error;
+                isListening = false;
+                // Try to restart after error
+                setTimeout(() => recognition.start(), 1000);
+            };
+            
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                const transcriptToProcess = finalTranscript || interimTranscript;
+                display.textContent = transcriptToProcess;
+                
+                if (transcriptToProcess) {
+                    processSpeech(transcriptToProcess.trim().toLowerCase());
+                }
+            };
+            
+            // Start recognition immediately
+            try {
+                recognition.start();
+            } catch(e) {
+                status.textContent = languages[currentLang].statusError + e.message;
+                // Try again after a delay
+                setTimeout(() => recognition.start(), 1000);
+            }
+            
+            // Process the spoken text
+            function processSpeech(text) {
+                const langData = languages[currentLang];
+                
+                // Check for wake word ("hey math" or "数学助手")
+                if (!wakeWordDetected && text.includes(langData.wakeWord)) {
+                    wakeWordDetected = true;
+                    status.textContent = langData.statusActive;
+                    speak(currentLang === 'en' ? "Ready for your command" : "请说出您的指令");
+                    return;
+                }
+                
+                if (wakeWordDetected) {
+                    // Check if it's a currency conversion
+                    if (langData.currencyPrompt.some(word => text.includes(word))) {
+                        convertCurrency(text);
+                    } 
+                    // Otherwise, treat as math operation
+                    else {
+                        const calculation = calculateAdvanced(text);
+                        
+                        if (calculation) {
+                            // Speak and show the result
+                            const response = currentLang === 'en' ? 
+                                `${calculation.expression} equals ${calculation.result}` :
+                                `${calculation.expression} 等于 ${calculation.result}`;
+                            
+                            speak(response);
+                            showResult(calculation.expression, calculation.result);
+                        } else {
+                            // No valid operation detected
+                            speak(langData.examplePrompt);
+                        }
+                    }
+                    
+                    // Reset after processing
+                    setTimeout(() => {
+                        wakeWordDetected = false;
+                        status.textContent = langData.statusListening;
+                    }, 5000);
+                }
+            }
+            
+            // Advanced math operations
+            function calculateAdvanced(text) {
+                const langData = languages[currentLang];
+                let result = null;
+                let expression = "";
+                
+                // Extract numbers
+                const numbers = text.match(/\d+/g) || [];
+                const num1 = numbers[0] ? parseFloat(numbers[0]) : null;
+                const num2 = numbers[1] ? parseFloat(numbers[1]) : null;
+                
+                // Check for addition
+                if (langData.calculationPrompt.some(op => text.includes(op)) && num1 && num2) {
+                    if (text.includes("+") || text.includes("add") || text.includes("plus") || text.includes("加")) {
+                        result = num1 + num2;
+                        expression = `${num1} + ${num2}`;
+                    }
+                    // Subtraction
+                    else if (text.includes("-") || text.includes("minus") || text.includes("subtract") || text.includes("减")) {
+                        result = num1 - num2;
+                        expression = `${num1} - ${num2}`;
+                    }
+                    // Multiplication
+                    else if (text.includes("×") || text.includes("x") || text.includes("times") || text.includes("multiply") || text.includes("乘")) {
+                        result = num1 * num2;
+                        expression = `${num1} × ${num2}`;
+                    }
+                    // Division
+                    else if (text.includes("÷") || text.includes("/") || text.includes("divide") || text.includes("除")) {
+                        result = num1 / num2;
+                        expression = `${num1} ÷ ${num2}`;
+                    }
+                    // Square root
+                    else if (text.includes("sqrt") || text.includes("square root") || text.includes("平方根")) {
+                        result = Math.sqrt(num1);
+                        expression = `√${num1}`;
+                    }
+                    // Exponents
+                    else if (text.includes("^") || text.includes("power") || text.includes("次方")) {
+                        result = Math.pow(num1, num2);
+                        expression = `${num1}^${num2}`;
+                    }
+                    // Percentage
+                    else if (text.includes("%") || text.includes("percent") || text.includes("百分比")) {
+                        result = (num1 * num2) / 100;
+                        expression = `${num1}% of ${num2}`;
+                    }
+                }
+                
+                if (result !== null) {
+                    return {
+                        expression: expression,
+                        result: Number.isInteger(result) ? result : parseFloat(result.toFixed(4))
+                    };
+                }
+                return null;
+            }
+            
+            // Currency conversion (simplified with fixed rates)
+            function convertCurrency(text) {
+                const langData = languages[currentLang];
+                const currencies = Object.keys(langData.currencies);
+                
+                // Extract amount and currencies
+                const amountMatch = text.match(/\d+/);
+                const fromCurrencyMatch = text.match(new RegExp(currencies.join("|"), "i"));
+                const toCurrencyMatch = text.match(new RegExp(currencies.join("|"), "gi"));
+                
+                if (!amountMatch || !fromCurrencyMatch || !toCurrencyMatch || fromCurrencyMatch[0].toUpperCase() === toCurrencyMatch[0].toUpperCase()) {
+                    speak(currentLang === 'en' ? "Please specify a valid conversion like: 100 USD to EUR" : "请指定有效兑换，例如：100美元兑换人民币");
+                    return;
+                }
+                
+                const amount = parseFloat(amountMatch[0]);
+                const fromCurrency = fromCurrencyMatch[0].toUpperCase();
+                const toCurrency = toCurrencyMatch[1] ? toCurrencyMatch[1].toUpperCase() : toCurrencyMatch[0].toUpperCase();
+                
+                // Simplified exchange rates (for demo)
+                const exchangeRates = {
+                    "USD": { "EUR": 0.85, "JPY": 110, "GBP": 0.75, "CNY": 6.5, "AUD": 1.35 },
+                    "EUR": { "USD": 1.18, "JPY": 130, "GBP": 0.88, "CNY": 7.7, "AUD": 1.6 },
+                    "JPY": { "USD": 0.0091, "EUR": 0.0077, "GBP": 0.0068, "CNY": 0.059, "AUD": 0.012 },
+                    "GBP": { "USD": 1.33, "EUR": 1.14, "JPY": 147, "CNY": 8.8, "AUD": 1.8 },
+                    "CNY": { "USD": 0.15, "EUR": 0.13, "JPY": 17, "GBP": 0.11, "AUD": 0.21 },
+                    "AUD": { "USD": 0.74, "EUR": 0.63, "JPY": 83, "GBP": 0.56, "CNY": 4.8 }
+                };
+                
+                if (!exchangeRates[fromCurrency] || !exchangeRates[fromCurrency][toCurrency]) {
+                    speak(currentLang === 'en' ? "Currency conversion not supported" : "不支持该货币兑换");
+                    return;
+                }
+                
+                const rate = exchangeRates[fromCurrency][toCurrency];
+                const result = (amount * rate).toFixed(2);
+                
+                const response = currentLang === 'en' ?
+                    `${amount} ${fromCurrency} is about ${result} ${toCurrency}` :
+                    `${amount}${fromCurrency} 约等于 ${result}${toCurrency}`;
+                
+                speak(response);
+                showResult(`${amount} ${fromCurrency} → ${toCurrency}`, result);
+            }
+            
+            // Show result on screen
+            function showResult(expression, result) {
+                response.innerHTML = `<strong>${currentLang === 'en' ? 'Result:' : '结果:'}</strong> ${expression} = <strong>${result}</strong>`;
+                
+                // Add celebration emoji
+                setTimeout(() => {
+                    response.innerHTML += '<div style="font-size:24px;margin-top:10px;">🎉 🥳 👏</div>';
+                }, 1000);
+            }
+            
+            // Speak text using speech synthesis
+            function speak(text) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = currentLang === 'en' ? 'en-UK' : 'zh-CN';
+                utterance.rate = 0.9;
+                utterance.pitch = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+    </script>
+    <a href="https://hanwy-intro.glitch.me" target="_blank">
+        <button class="floating-button">Made by Hanwy</button>
+    </a>
+</body>
+</html>
